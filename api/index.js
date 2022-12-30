@@ -97,12 +97,6 @@ app.post('/api/reservation', async (req, res) => {
     return res.status(400).send(e.message);
   }
 });
-
-// If request doesn't match any of the above routes then return 404
-app.use((req, res, next) => {
-  return res.status(404).send();
-});
-
 //api to get reserved tickets ---------SHAGHAL-----------
 app.get("/api/reservation/:id", async (req, res) => {
   const db = await mongoClient();
@@ -118,6 +112,13 @@ app.get("/api/reservation/:id", async (req, res) => {
     res.status(200).send(reservation);
   }
 });
+
+// If request doesn't match any of the above routes then return 404
+app.use((req, res, next) => {
+  return res.status(404).send();
+});
+
+
 
 
 // Create HTTP Server and Listen for Requests
