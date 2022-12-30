@@ -9,6 +9,8 @@ const { sendKafkaMessage } = require('../connectors/kafka');
 const { validateTicketReservationDto } = require('../validation/reservation');
 const messagesType = require('../constants/messages');
 const { startKafkaProducer } = require('../connectors/kafka');
+const { mongoClient } = require('../connectors/mongo');
+
 
 // Config setup to parse JSON payloads from HTTP POST request body
 app.use(express.json());
@@ -22,6 +24,7 @@ app.get('/api/health', async (req, res) => {
 
 // HTTP endpoint to create new user
 app.post('/api/reservation', async (req, res) => {
+  const db = await mongoClient();
   try {
     // validate payload before proceeding with reservations
     const validationError = validateTicketReservationDto(req.body);
@@ -83,7 +86,7 @@ app.post('/api/reservation', async (req, res) => {
       quantity: req.body.tickets.quantity,
       price: req.body.tickets.price,
     };
-    await db('reservations').insert(ticketReservation);
+    const reservation = await db.collection('Reservation').insertOne(ticketReservation);
 
     // Return success response to client
     return res.json({
@@ -100,8 +103,25 @@ app.use((req, res, next) => {
   return res.status(404).send();
 });
 
+//api to get reserved tickets ---------SHAGHAL-----------
+app.get("/api/reservation/:id", async (req, res) => {
+  const db = await mongoClient();
+  if (!db) res.status(500).send("Systems Unavailable");
+  let id = req.params.id;
+
+  const reservation = await db
+    .collection("Reservation")
+    .findOne({ id: id });
+  if (!reservation) {
+    res.status(200).send({ message: "Reservation not found" });
+  } else {
+    res.status(200).send(reservation);
+  }
+});
+
+
 // Create HTTP Server and Listen for Requests
-app.listen(3000, async (req, res) => {
+app.listen(4000, async (req, res) => {
   // Start Kafka Producer
   await startKafkaProducer();
 });
