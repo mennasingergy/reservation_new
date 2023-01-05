@@ -2,6 +2,7 @@ require('dotenv').config();
 const path = require('path');
 const express = require('express');
 const app = express();
+const cors = require('cors')
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const { v4 } = require('uuid');
 const db = require('../connectors/postgres');
@@ -11,6 +12,8 @@ const messagesType = require('../constants/messages');
 const { startKafkaProducer } = require('../connectors/kafka');
 const { mongoClient } = require('../connectors/mongo');
 
+// allow cors
+app.use(cors())
 
 // Config setup to parse JSON payloads from HTTP POST request body
 app.use(express.json());
